@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes msgPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0); }
+  40% { box-shadow: 0 0 0 6px rgba(167, 139, 250, 0.28); }
+  70% { box-shadow: 0 0 0 10px rgba(167, 139, 250, 0); }
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -25px) scale(1.06); }
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  scroll-padding-top: 40px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background-color: #05050c;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Slim scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(51 65 85) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(51 65 85);
+  border-radius: 8px;
+}
