@@ -8,9 +8,9 @@ A zero-persistence chat app built with **React 19 + Vite 8 + Tailwind CSS v4**. 
 
 ## Screenshots
 
-| Desktop | Mobile |
-| :---: | :---: |
-| ![Ephemeral Chat — Desktop](/screenshots/home-desktop.png) | ![Ephemeral Chat — Mobile](/screenshots/home-mobile.png) |
+| Desktop | 
+| :---: |
+| ![Ephemeral Chat — Desktop](/screenshots/home-desktop.png) | 
 
 ---
 
