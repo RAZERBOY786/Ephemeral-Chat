@@ -117,8 +117,8 @@ All your open tabs talk to each other over the `e-chat:sync` BroadcastChannel:
 ```
 ├── public/
 │   ├── favicon.svg
-│   ├── icons.svg
-│   └── screenshots/          # README screenshots
+│   └── icons.svg
+├── screenshots/              # README screenshots
 ├── src/
 │   ├── App.jsx               # Stage machine: home → signup → app
 │   ├── main.jsx
