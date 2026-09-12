@@ -1,17 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Lobby from './components/Lobby'
 import Chat from './components/Chat'
 import Home from './pages/Home'
 import Signup from './pages/Signup'
 import Teams from './pages/Teams'
 import Settings from './pages/Settings'
-import { getUserName } from './store'
+import { getUserName, initChatStore } from './store'
 
 export default function App() {
   const [stage, setStage] = useState('home')
   const [tab, setTab] = useState('chat')
   const [session, setSession] = useState(null)
   const [preselect, setPreselect] = useState(null)
+
+  // The relay socket is only opened once the user actually enters the app —
+  // the marketing page never touches the server.
+  useEffect(() => {
+    if (stage === 'app' || stage === 'signup') initChatStore()
+  }, [stage])
 
   const startApp = () => setStage(getUserName() ? 'app' : 'signup')
   const signupDone = () => { setStage('app'); setTab('chat') }

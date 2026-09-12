@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { getRoom, postMessage, deleteMessage, deleteFile, leaveRoom, destroyRoom, subscribe, addFile, getPrefs, setTyping } from '../store'
+import { getRoom, postMessage, deleteMessage, deleteFile, leaveRoom, destroyRoom, subscribe, addFile, getPrefs, setTyping, markRead, getLastLeave } from '../store'
 import Shell from './Shell'
 import { playSendSound, playReplySound } from '../utils/sound'
 
@@ -74,6 +74,8 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
   const [showEmoji, setShowEmoji] = useState(false)
   const [pendingDel, setPendingDel] = useState(null)
   const [nowTick, setNowTick] = useState(() => Date.now())
+  const [leaveAlert, setLeaveAlert] = useState(null)
+
   const [incomingPulse, setIncomingPulse] = useState(null)
 
   const logRef = useRef(null)
@@ -83,6 +85,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
   const lastLenRef = useRef(0)
   const lastIncomingRef = useRef({ id: null, at: 0 })
   const typingSentRef = useRef(false)
+  const lastLeaveAtRef = useRef(0)
   const origTitleRef = useRef(document.title)
 
   // Live sync
@@ -91,6 +94,12 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
       const r = getRoom(lastRoomRef.current)
       setRoom(r ? { ...r, users: [...r.users], messages: [...r.messages] } : null)
       if (!r) setShowDeleted(true)
+      // Surface leave alerts: instant on tab close, plus "left before reading".
+      const lv = getLastLeave(lastRoomRef.current)
+      if (lv && lv.at > lastLeaveAtRef.current) {
+        lastLeaveAtRef.current = lv.at
+        if (lv.reason !== 'left' || lv.unread > 0) setLeaveAlert({ ...lv })
+      }
     })
   }, [])
 
@@ -113,7 +122,15 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
     }
     lastLenRef.current = len
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
+    markRead(lastRoomRef.current)
   }, [room?.messages?.length, room?.messages, displayName])
+
+  // Leave alert auto-hides after a few seconds.
+  useEffect(() => {
+    if (!leaveAlert) return
+    const t = setTimeout(() => setLeaveAlert(null), 8000)
+    return () => clearTimeout(t)
+  }, [leaveAlert])
 
   // Ticker: keeps typing indicator + dividers fresh AND drives the incoming
   // message glow pulse (state lives in a ref; setState happens async here).
@@ -174,7 +191,8 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
 
   const handleSend = async () => {
     if (!input.trim()) return
-    await postMessage(roomId, displayName, input.trim())
+    const res = await postMessage(roomId, displayName, input.trim())
+    if (res && res.ok === false) return
     setInput('')
     handleTyping(false)
     if (getPrefs().sound) playSendSound()
@@ -450,6 +468,33 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
           </button>
         </div>
       </div>
+
+      {/* Leave alert — shown when a member closes their tab or drops */}
+      {leaveAlert && (
+        <div className="flex items-center gap-2.5 px-4 sm:px-8 py-2.5 bg-amber-500/10 border-b border-amber-400/25 text-amber-200 animate-[fadeIn_.3s_ease] flex-shrink-0">
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span className="text-xs font-medium flex-1 min-w-0 truncate">
+            <span className="font-semibold">{leaveAlert.name}</span> left the chat
+            {leaveAlert.unread > 0 && (
+              <span className="text-amber-300">
+                {' '}— left {leaveAlert.unread} message{leaveAlert.unread === 1 ? '' : 's'} unread
+              </span>
+            )}
+          </span>
+          <button
+            onClick={() => setLeaveAlert(null)}
+            className="p-1 rounded-md text-amber-200/60 hover:text-amber-200 hover:bg-amber-400/10 transition flex-shrink-0"
+            title="Dismiss"
+            aria-label="Dismiss alert"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Message thread */}
       <div

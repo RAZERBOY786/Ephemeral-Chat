@@ -32,6 +32,14 @@ function buildSecurity() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), buildSecurity()],
+  server: {
+    proxy: {
+      '/socket.io': {
+        target: 'http://localhost:5000',
+        ws: true,
+      },
+    },
+  },
   build: {
     sourcemap: false,
     reportCompressedSize: false,

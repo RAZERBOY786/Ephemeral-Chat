@@ -1,8 +1,8 @@
 # TempRoom- — Ephemeral Chat
 
-A zero-persistence chat app built with **React 19 + Vite 8 + Tailwind CSS v4**. Rooms, messages, files and passwords live **only in browser memory** — nothing chat-related is ever written to disk. Every conversation auto-destroys when the last person leaves.
+An ephemeral chat app built with a **React 19 + Vite 8 + Tailwind CSS v4** client and a **Node.js + Express + Socket.IO relay server**. Rooms, messages, files and passwords live **only in server RAM** — nothing chat-related is ever written to disk or a database. Every conversation auto-destroys shortly after the last person leaves.
 
-> **Zero persistence by design.** No servers, no database, no localStorage for chat data. Close every tab and the conversation is gone forever.
+> **Zero persistence by design.** No database. The relay keeps everything in memory and forgets it the moment the room dies. Close every tab and the conversation is gone forever.
 
 ---
 
@@ -17,10 +17,10 @@ A zero-persistence chat app built with **React 19 + Vite 8 + Tailwind CSS v4**. 
 ## Features
 
 ### 🔐 Zero-persistence rooms
-- Rooms live in RAM only and sync across your own open tabs over a `BroadcastChannel` — never a server.
+- Rooms live **in server RAM only** and are relayed to every connected client in real time — never a database.
 - Room IDs are 6-char (e.g. `9DDQLE`) and password-protected.
 - Rooms are never listed publicly; only people with the ID + password can join.
-- The room auto-destroys the moment the last member leaves, wiping every message and file.
+- The room auto-destroys ~30 s after the last member leaves (with a ~20 s disconnect-reconnect grace), wiping every message and file.
 
 ### 💬 Real chat-app experience
 - **Grouped bubbles** — consecutive messages from the same sender merge, with one avatar and timestamps inside the last bubble.
@@ -35,7 +35,7 @@ A zero-persistence chat app built with **React 19 + Vite 8 + Tailwind CSS v4**. 
 ### 🧑💻 Guest accounts, no sign-up
 - One click to continue as a random guest (`Guest-XXXX`), or pick your own display name.
 - Name is sanitized, live-synced across tabs, and stored locally only (it is non-chat data).
-- Duplicate names in a room are auto-suffixed (`Bob` → `Bob-2`) so you can join from multiple tabs.
+- Duplicate names in a room are auto-suffixed by the server (`Bob` → `Bob-2`) so you can join from multiple tabs.
 
 ### 🎨 Polished UI
 - Dark aurora + animated dot-field background.
@@ -52,9 +52,9 @@ A zero-persistence chat app built with **React 19 + Vite 8 + Tailwind CSS v4**. 
 | Framework | [React 19](https://react.dev) |
 | Build tool | [Vite 8](https://vite.dev) |
 | Styling | [Tailwind CSS v4](https://tailwindcss.com) |
+| Relay server | Node.js + [Express 5](https://expressjs.com) + [Socket.IO](https://socket.io) |
 | Linting | [Oxlint](https://oxc.rs/docs/guide/usage/lint.html) |
-| Cross-tab sync | BroadcastChannel API (structured clone) |
-| Persistence | None for chat — localStorage only for non-chat settings/activity/name |
+| Persistence | None for chat — RAM-only relay; localStorage only for non-chat settings/activity/name |
 
 ---
 
@@ -62,16 +62,36 @@ A zero-persistence chat app built with **React 19 + Vite 8 + Tailwind CSS v4**. 
 
 ```bash
 npm install
-npm run dev
 ```
 
-Open the printed URL (default `http://localhost:5173`).
+Run the **relay server** (serves the production build from `dist/` too):
+
+```bash
+npm run server        # node server/server.js  → http://localhost:5000
+```
+
+In a second terminal, run the Vite dev client (proxies `/socket.io` to the server):
+
+```bash
+npm run dev           # http://localhost:5173
+```
+
+> The relay never needs a database — it boots empty and lives entirely in RAM.
+
+### Remote relay
+
+To point the app at a relay that isn't `http://localhost:5000`, set a URL before running the dev server:
+
+```bash
+# PowerShell:
+$env:VITE_SERVER_URL = "https://your-relay.example.com"; npm run dev
+```
 
 ### Production build
 
 ```bash
 npm run build
-npm run preview
+npm start             # same as npm run server — serves dist/ + relay on :5000
 ```
 
 The build output in `dist/` is hardened with an injected Content-Security-Policy and robots `noindex`/`nofollow` meta tags.
@@ -93,22 +113,24 @@ npm run lint
 
 ### Sync model
 
-All your open tabs talk to each other over the `e-chat:sync` BroadcastChannel:
+All clients talk to the relay over Socket.IO:
 
-- A `sync-request` handshake lets late-opening tabs pull current room state immediately.
-- A 1-second heartbeat keeps every tab current.
-- Nothing is written to disk — chat data is transported by structured clone and held in RAM.
+- A **relay server** holds every live room in a `Map` (RAM only) and broadcasts a full room snapshot to all members on every change.
+- The client keeps an in-memory mirror per tab; on reconnect it automatically re-joins every room it was in.
+- The server assigns message/file ids and timestamps, and generates joined / left / created / shared system messages.
+- Nothing is written to disk — chat data is transported over the socket and held in RAM server-side and per-tab.
 
 ---
 
 ## Privacy & Security
 
-- **Peer to peer only** — nothing ever goes to a server.
-- **Nothing is stored** — no message, file or room is written to localStorage.
+- **No database** — the relay keeps rooms in RAM and forgets them; restarting the server wipes everything.
+- **Nothing is stored** — no message, file or room is written to disk or localStorage.
 - **Hidden rooms** — no public room list; only the exact ID + password grants access.
-- **Password protected** — every room requires its password to join.
-- **Auto-destroy** — leaving last / pressing Destroy permanently erases the room.
-- **Passwords never stored** — room passwords exist in memory only for the session.
+- **Password protected** — every room requires its password to join, and room passwords are never sent back to clients.
+- **Auto-destroy** — leaving last / pressing Destroy permanently erases the room (~30 s grace).
+- **Rate limited** — per-socket message throttling and join-attempt lockouts limit abuse.
+- **Passwords never stored** — room passwords exist in memory only for the room's lifetime.
 
 ---
 
@@ -119,10 +141,17 @@ All your open tabs talk to each other over the `e-chat:sync` BroadcastChannel:
 │   ├── favicon.svg
 │   └── icons.svg
 ├── screenshots/              # README screenshots
+├── server/                   # RAM-only relay (Express 5 + Socket.IO)
+│   ├── server.js             # HTTP + SPA fallback + Socket.IO wiring + sweeper
+│   ├── config/security.js    # ports, limits, room timings, rate limits
+│   ├── rooms/roomManager.js  # in-memory room lifecycle logic
+│   ├── sockets/roomSocket.js # event handlers (create/join/leave/message/file)
+│   └── utils/                # roomId, validation, cleanup
 ├── src/
 │   ├── App.jsx               # Stage machine: home → signup → app
 │   ├── main.jsx
-│   ├── store.js              # In-memory store + BroadcastChannel sync
+│   ├── store.js              # Per-tab mirror of server rooms + socket wiring
+│   ├── services/socket.js    # Lazy Socket.IO client + request helper
 │   ├── index.css             # Tailwind, keyframes, scrollbars
 │   ├── components/
 │   │   ├── AppRail.jsx       # Left navigation rail
@@ -143,7 +172,8 @@ All your open tabs talk to each other over the `e-chat:sync` BroadcastChannel:
 │   └── utils/
 │       ├── mask.js           # Room-ID masking helpers
 │       └── sound.js          # Web-Audio send/reply sounds
-└── vite.config.js            # Build hardening (CSP, no sourcemaps)
+├── .env.example              # PORT / ORIGIN / STATIC_DIR for the relay
+└── vite.config.js            # Build hardening + /socket.io dev proxy
 ```
 
 ---
