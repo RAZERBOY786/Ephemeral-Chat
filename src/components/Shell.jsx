@@ -9,7 +9,7 @@ export default function Shell({ userName, active, onNavigate, onOpenSettings, le
   const liveName = useUserName()
   const shownName = liveName || userName || ''
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#05050c] text-white flex">
+    <div className="relative h-screen supports-[height:100dvh]:h-dvh w-full overflow-hidden bg-[#05050c] text-white">
       {prefs.aurora && <Aurora />}
       {prefs.dotField && (
         <div className="pointer-events-none absolute inset-0 z-[1]">
@@ -26,7 +26,7 @@ export default function Shell({ userName, active, onNavigate, onOpenSettings, le
           />
         </div>
       )}
-      <div className="relative z-10 flex w-full h-full min-w-0">
+      <div className="relative z-10 flex w-full h-full min-w-0 flex-col md:flex-row">
         <AppRail
           userName={shownName}
           active={active}
@@ -34,7 +34,9 @@ export default function Shell({ userName, active, onNavigate, onOpenSettings, le
           onOpenSettings={onOpenSettings}
         />
         {left}
-        <main className="flex-1 min-w-0 flex flex-col">{children}</main>
+        <main className="flex-1 min-w-0 flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+          {children}
+        </main>
       </div>
     </div>
   )

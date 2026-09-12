@@ -145,7 +145,7 @@ export default function Signup({ onDone, onBack }) {
             <label className="block text-xs font-semibold text-white/50 mb-2 uppercase tracking-wider">
               Display Name
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="text"
                 value={name}
@@ -158,7 +158,7 @@ export default function Signup({ onDone, onBack }) {
               <button
                 onClick={handleCreate}
                 disabled={!name.trim() || busy}
-                className="bg-gradient-to-r from-[#4169E1] to-[#7C3AED] hover:from-[#5e83f5] hover:to-[#4169E1] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg text-sm transition shadow-lg shadow-[#4169E1]/30"
+                className="bg-gradient-to-r from-[#4169E1] to-[#7C3AED] hover:from-[#5e83f5] hover:to-[#4169E1] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg text-sm transition shadow-lg shadow-[#4169E1]/30 w-full sm:w-auto"
               >
                 Create account
               </button>

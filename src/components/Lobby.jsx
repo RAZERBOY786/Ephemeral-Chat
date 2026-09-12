@@ -95,7 +95,7 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
 
   // Left pane: privacy panel (rooms are hidden by default)
   const left = (
-    <aside className="w-[300px] xl:w-[340px] bg-white/[0.04] backdrop-blur-2xl border-r border-white/10 flex flex-col flex-shrink-0">
+    <aside className="hidden lg:flex w-[300px] xl:w-[340px] bg-white/[0.04] backdrop-blur-2xl border-r border-white/10 flex flex-col flex-shrink-0">
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <h1 className="text-xl font-semibold text-white">Home</h1>
         <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-emerald-300">
@@ -181,7 +181,7 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
           )}
 
           {/* Guest account quick-start */}
-          <div className="mb-6 bg-gradient-to-r from-[#4169E1]/15 to-[#7C3AED]/15 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
+          <div className="mb-6 bg-gradient-to-r from-[#4169E1]/15 to-[#7C3AED]/15 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/[0.08] border border-white/15 flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-[#c4b5fd]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -193,7 +193,7 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
                 <p className="text-[11px] text-white/45">No sign-up — get a random identity and start instantly.</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {name.startsWith('Guest-') && (
                 <button
                   onClick={handleRemoveGuest}
@@ -260,7 +260,7 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
                   <p className="text-[11px] text-white/40">You get a 6-char ID + password to share</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="password"
                   value={password}
@@ -272,7 +272,7 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
                 <button
                   onClick={handleCreate}
                   disabled={!isCreateValid || busy}
-                  className="bg-gradient-to-r from-[#4169E1] to-[#7C3AED] hover:from-[#5e83f5] hover:to-[#4169E1] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg text-sm transition shadow-lg shadow-[#4169E1]/30 whitespace-nowrap"
+                  className="bg-gradient-to-r from-[#4169E1] to-[#7C3AED] hover:from-[#5e83f5] hover:to-[#4169E1] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg text-sm transition shadow-lg shadow-[#4169E1]/30 whitespace-nowrap w-full sm:w-auto"
                 >
                   Create
                 </button>
@@ -292,14 +292,14 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
                   <p className="text-[11px] text-white/40">Enter the ID & password you were given</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="text"
                   value={roomId}
                   onChange={(e) => { setRoomId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)); clear() }}
                   placeholder="ID"
                   maxLength={6}
-                  className="w-16 bg-white/[0.06] border border-white/10 rounded-lg px-2 py-2.5 text-sm font-mono text-white placeholder-white/35 tracking-widest focus:outline-none focus:ring-2 focus:ring-[#a78bfa]/60 transition uppercase text-center"
+                  className="w-full sm:w-16 bg-white/[0.06] border border-white/10 rounded-lg px-2 py-2.5 text-sm font-mono text-white placeholder-white/35 tracking-widest focus:outline-none focus:ring-2 focus:ring-[#a78bfa]/60 transition uppercase text-center"
                 />
                 <input
                   type="password"
@@ -312,7 +312,7 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
                 <button
                   onClick={handleJoin}
                   disabled={!isJoinValid || busy}
-                  className="bg-gradient-to-r from-[#4169E1] to-[#7C3AED] hover:from-[#5e83f5] hover:to-[#4169E1] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg text-sm transition shadow-lg shadow-[#4169E1]/30"
+                  className="bg-gradient-to-r from-[#4169E1] to-[#7C3AED] hover:from-[#5e83f5] hover:to-[#4169E1] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-lg text-sm transition shadow-lg shadow-[#4169E1]/30 whitespace-nowrap w-full sm:w-auto"
                 >
                   Join
                 </button>

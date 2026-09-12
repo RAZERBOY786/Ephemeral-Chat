@@ -35,7 +35,7 @@ export default function Teams({ active, onNavigate, onOpenSettings, onOpenChat }
   }
 
   const left = (
-    <aside className="w-[300px] xl:w-[340px] bg-white/[0.04] backdrop-blur-2xl border-r border-white/10 flex flex-col flex-shrink-0">
+    <aside className="hidden lg:flex w-[300px] xl:w-[340px] bg-white/[0.04] backdrop-blur-2xl border-r border-white/10 flex flex-col flex-shrink-0">
       <div className="flex items-center gap-3 px-5 pt-5 pb-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4169E1]/70 to-[#7C3AED]/70 border border-white/20 flex items-center justify-center">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -92,7 +92,7 @@ export default function Teams({ active, onNavigate, onOpenSettings, onOpenChat }
                       {r.id[0]}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-semibold text-white tracking-widest">{maskId(r.id)}</span>
                         <span className="text-[10px] bg-[#7C3AED]/15 border border-[#7C3AED]/30 text-[#c4b5fd] px-2 py-0.5 rounded-full">
                           {r.users.length} {r.users.length === 1 ? 'member' : 'members'}
@@ -129,7 +129,7 @@ export default function Teams({ active, onNavigate, onOpenSettings, onOpenChat }
                     </span>
                   </div>
 
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex gap-2 mt-4 flex-wrap">
                     <button
                       onClick={() => onOpenChat(r.id)}
                       className="bg-gradient-to-r from-[#4169E1] to-[#7C3AED] hover:from-[#5e83f5] hover:to-[#4169E1] text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-lg shadow-[#4169E1]/30"
