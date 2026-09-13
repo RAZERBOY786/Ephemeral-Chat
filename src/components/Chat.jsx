@@ -63,7 +63,7 @@ function buildGroups(messages, roomCreatedAt) {
   return groups
 }
 
-export default function Chat({ roomId, displayName, onLeave, active, onNavigate, onOpenSettings }) {
+export default function Chat({ roomId, displayName, onLeave, active, onNavigate, onOpenSettings, onBackHome }) {
   const [room, setRoom] = useState(() => getRoom(roomId))
   const [input, setInput] = useState('')
   const [confirmLeave, setConfirmLeave] = useState(false)
@@ -249,7 +249,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
 
   if (showDeleted) {
     return (
-      <Shell userName={displayName} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} left={null}>
+      <Shell userName={displayName} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} onBackHome={onBackHome} left={null}>
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md bg-white/[0.06] backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-8 text-center animate-[fadeUp_.4s_ease]">
             <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-red-500/15 border border-red-400/20 flex items-center justify-center">
@@ -364,7 +364,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
   )
 
   return (
-    <Shell userName={displayName} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} left={left}>
+    <Shell userName={displayName} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} onBackHome={onBackHome} left={left}>
       {/* Chat tab header */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 bg-white/[0.04] backdrop-blur-2xl border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -405,7 +405,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
               ) : (
                 room?.users?.length === 1
                   ? 'You are the only one here'
-                  : `In the room with ${room.users.filter((u) => u !== displayName).join(', ')}`
+                  : `In the room with ${(room?.users || []).filter((u) => u !== displayName).join(', ')}`
               )}
             </p>
           </div>

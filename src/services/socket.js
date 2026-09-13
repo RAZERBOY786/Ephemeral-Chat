@@ -39,10 +39,6 @@ export function getSocket() {
   return socket
 }
 
-export function initSocket() {
-  return getSocket()
-}
-
 /** True when a socket was created at least once in this session. */
 export function hasSocket() {
   return socket !== null

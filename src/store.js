@@ -259,16 +259,6 @@ export function getRoom(id) {
   return copyRoom(rooms[id])
 }
 
-export function roomExists(id) {
-  return !!rooms[id]
-}
-
-export function getRoomNameTaken(id, name) {
-  const r = rooms[id]
-  if (!r) return false
-  return r.users.includes(sanitizeName(name))
-}
-
 export function getRoomsDetailed() {
   return Object.values(rooms).map((r) => ({
     id: r.id,
@@ -277,20 +267,6 @@ export function getRoomsDetailed() {
     users: [...r.users],
     fileCount: r.fileCount || 0,
   }))
-}
-
-export function getPublicRooms() {
-  return Object.values(rooms).map((r) => ({
-    id: r.id,
-    userCount: r.users.length,
-    createdBy: r.createdBy,
-  }))
-}
-
-export function getFiles() {
-  return Object.values(rooms).flatMap((r) =>
-    r.files.map((f) => ({ ...f, roomId: r.id, roomCreator: r.createdBy }))
-  )
 }
 
 // ─── Activity log (non-chat event feed, local only) ──────────────
@@ -323,10 +299,6 @@ export function recordActivity(type, text, roomId, meta = {}) {
   notify()
 }
 
-export function getActivity() {
-  return readActivity()
-}
-
 // ─── Danger zone / backup ────────────────────────────────────────
 
 export async function clearRooms() {
@@ -340,13 +312,6 @@ export async function clearRooms() {
   notify()
 }
 
-export function clearActivity() {
-  try {
-    localStorage.removeItem(ACTIVITY_KEY)
-  } catch {}
-  notify()
-}
-
 export async function clearAllData() {
   await clearRooms()
   try {
@@ -356,18 +321,6 @@ export async function clearAllData() {
     localStorage.removeItem(PREFS_KEY)
   } catch {}
   notify()
-}
-
-export function getStorageBytes() {
-  let total = 0
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i) || ''
-      const v = localStorage.getItem(k) || ''
-      total += k.length + v.length * 2
-    }
-  } catch {}
-  return total
 }
 
 // ─── Preferences (local only) ────────────────────────────────────

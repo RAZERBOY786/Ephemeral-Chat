@@ -12,7 +12,7 @@ function fmtDate(ts) {
   }
 }
 
-export default function Teams({ active, onNavigate, onOpenSettings, onOpenChat }) {
+export default function Teams({ active, onNavigate, onOpenSettings, onOpenChat, onBackHome }) {
   const [rooms, setRooms] = useState(getRoomsDetailed())
   const [copiedId, setCopiedId] = useState('')
   const [endTarget, setEndTarget] = useState(null)
@@ -66,7 +66,7 @@ export default function Teams({ active, onNavigate, onOpenSettings, onOpenChat }
   )
 
   return (
-    <Shell userName={getUserName()} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} left={left}>
+    <Shell userName={getUserName()} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} onBackHome={onBackHome} left={left}>
       <div className="flex-1 overflow-y-auto p-6 lg:p-10">
         <div className="w-full max-w-3xl mx-auto animate-[fadeUp_.4s_ease]">
           <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-2">Your teams</h2>

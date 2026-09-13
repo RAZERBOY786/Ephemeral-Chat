@@ -3,7 +3,7 @@ import { createRoom, joinRoom, getUserName, saveUserName, genGuestName, deleteAc
 import Reveal from './Reveal'
 import Shell from './Shell'
 
-export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, onOpenSettings }) {
+export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, onOpenSettings, onBackHome }) {
   const [name, setName] = useState(() => getUserName() || '')
   const [password, setPassword] = useState('')
   const [roomId, setRoomId] = useState(preselectRoom || '')
@@ -143,7 +143,7 @@ export default function Lobby({ preselectRoom, onEnterRoom, active, onNavigate, 
   )
 
   return (
-    <Shell userName={name} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} left={left}>
+    <Shell userName={name} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} onBackHome={onBackHome} left={left}>
       <div className="flex-1 overflow-y-auto p-6 lg:p-10">
         <div className="w-full max-w-3xl mx-auto">
           {/* Welcome header */}

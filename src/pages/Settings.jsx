@@ -43,7 +43,7 @@ const SECTIONS = [
   { id: 'about', label: 'About', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
 ]
 
-export default function Settings({ active, onNavigate, onOpenSettings, onCleared }) {
+export default function Settings({ active, onNavigate, onOpenSettings, onCleared, onBackHome }) {
   const [section, setSection] = useState('profile')
   const [name, setName] = useState(() => getUserName() || '')
   const [prefs, setPrefs] = useState(() => getPrefs())
@@ -126,7 +126,7 @@ export default function Settings({ active, onNavigate, onOpenSettings, onCleared
   )
 
   return (
-    <Shell userName={name || getUserName()} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} left={left}>
+    <Shell userName={name || getUserName()} active={active} onNavigate={onNavigate} onOpenSettings={onOpenSettings} onBackHome={onBackHome} left={left}>
       <div className="flex-1 overflow-y-auto p-6 lg:p-10">
         <div className="w-full max-w-3xl mx-auto animate-[fadeUp_.4s_ease]">
           {/* Mobile section switcher */}
