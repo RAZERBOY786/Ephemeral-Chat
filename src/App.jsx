@@ -30,6 +30,12 @@ export default function App() {
 
   const openSettings = () => setTab('settings')
 
+  const goHome = () => {
+    setSession(null)
+    setPreselect(null)
+    setStage('home')
+  }
+
   const handleCleared = () => {
     setSession(null)
     setPreselect(null)
@@ -40,7 +46,13 @@ export default function App() {
   if (stage === 'home') return <Home onStart={startApp} />
   if (stage === 'signup') return <Signup onDone={signupDone} onBack={() => setStage('home')} />
 
-  const navProps = { active: tab, onNavigate: setTab, onOpenSettings: openSettings, onOpenChat: openChat }
+  const navProps = {
+    active: tab,
+    onNavigate: setTab,
+    onOpenSettings: openSettings,
+    onOpenChat: openChat,
+    onBackHome: goHome,
+  }
 
   let body
   if (tab === 'chat') {

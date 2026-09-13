@@ -26,7 +26,7 @@ function NavButton({ item, active, onNavigate, hideLabel }) {
   )
 }
 
-export default function AppRail({ userName, active, onNavigate, onOpenSettings }) {
+export default function AppRail({ userName, active, onNavigate, onOpenSettings, onBackHome }) {
   const initial = userName.trim() ? userName.trim()[0].toUpperCase() : 'G'
   const label = userName.trim() || 'Guest'
 
@@ -35,6 +35,18 @@ export default function AppRail({ userName, active, onNavigate, onOpenSettings }
       className="relative z-20 flex items-center gap-1 sm:gap-2 px-2 sm:px-4 h-14 flex-shrink-0 bg-white/[0.05] backdrop-blur-2xl border-b border-white/10 animate-[navIn_.45s_ease-out_both]"
       aria-label="Primary"
     >
+      {/* Back to home */}
+      <button
+        onClick={() => onBackHome?.()}
+        title="Back to home"
+        aria-label="Back to home"
+        className="flex items-center justify-center w-9 h-9 rounded-lg border border-white/10 bg-white/[0.05] text-white/70 hover:text-white hover:bg-white/10 hover:border-white/20 transition cursor-pointer mr-1 sm:mr-2"
+      >
+        <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10" />
+        </svg>
+      </button>
+
       {/* Brand */}
       <button
         onClick={() => onNavigate('chat')}

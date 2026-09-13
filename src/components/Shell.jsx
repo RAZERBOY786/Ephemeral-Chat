@@ -28,7 +28,7 @@ function ConnectionStatus() {
   )
 }
 
-export default function Shell({ userName, active, onNavigate, onOpenSettings, left, children }) {
+export default function Shell({ userName, active, onNavigate, onOpenSettings, onBackHome, left, children }) {
   const prefs = getPrefs()
   const liveName = useUserName()
   const shownName = liveName || userName || ''
@@ -56,6 +56,7 @@ export default function Shell({ userName, active, onNavigate, onOpenSettings, le
           active={active}
           onNavigate={onNavigate}
           onOpenSettings={onOpenSettings}
+          onBackHome={onBackHome}
         />
         <div className="flex flex-1 min-h-0 flex-col md:flex-row">
           {left}
