@@ -32,7 +32,7 @@ export default function AppRail({ userName, active, onNavigate, onOpenSettings }
 
   return (
     <header
-      className="relative z-20 flex items-center gap-1 sm:gap-2 px-2 sm:px-4 h-14 flex-shrink-0 bg-white/[0.05] backdrop-blur-2xl border-b border-white/10"
+      className="relative z-20 flex items-center gap-1 sm:gap-2 px-2 sm:px-4 h-14 flex-shrink-0 bg-white/[0.05] backdrop-blur-2xl border-b border-white/10 animate-[navIn_.45s_ease-out_both]"
       aria-label="Primary"
     >
       {/* Brand */}

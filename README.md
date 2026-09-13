@@ -8,14 +8,6 @@ Built with a **React 19 + Vite 8 + Tailwind CSS v4** client and a **Node.js + Ex
 
 ---
 
-## 📸 Screenshots
-
-| Desktop | Mobile |
-| :---: | :---: |
-| ![Home screen — desktop](/screenshots/home-desktop.png) | ![Home screen — mobile](/screenshots/home-mobile.png) |
-
----
-
 ## ✨ Features
 
 ### 🔐 Ephemeral rooms
@@ -201,9 +193,6 @@ Passwords are **never** included in any snapshot or ack.
 
 ```
 ├── public/
-│   ├── favicon.svg
-│   └── icons.svg
-├── screenshots/                # README screenshots
 ├── server/                     # RAM-only relay (Express 5 + Socket.IO)
 │   ├── server.js               # HTTP + SPA fallback + Socket.IO wiring + sweeper
 │   ├── config/security.js      # Port, limits, room timings, rate limits

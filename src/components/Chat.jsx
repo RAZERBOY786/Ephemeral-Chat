@@ -504,7 +504,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
         {groups.map((group) => {
           if (group.kind === 'divider') {
             return (
-              <div key={group.key} className="flex items-center gap-3 justify-center py-3">
+              <div key={group.key} className="flex items-center gap-3 justify-center py-3 animate-[fadeUp_.45s_ease]">
                 <div className="h-px bg-white/10 flex-1 max-w-[120px]" />
                 <span className="text-[10px] text-white/40 uppercase tracking-widest">{group.label}</span>
                 <div className="h-px bg-white/10 flex-1 max-w-[120px]" />
@@ -610,7 +610,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
           return (
             <div
               key={group.key}
-              className={`group flex items-start gap-2.5 px-1 animate-[fadeIn_.25s] ${
+              className={`group flex items-start gap-2.5 px-1 animate-[bubbleIn_.35s_ease-out_both] ${
                 isSelf ? 'flex-row-reverse' : ''
               }`}
             >
@@ -634,7 +634,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
                     ? i === 0 ? 'rounded-tr-sm' : i === lastIdx ? 'rounded-br-sm' : ''
                     : i === 0 ? 'rounded-tl-sm' : i === lastIdx ? 'rounded-bl-sm' : ''
                   return (
-                    <div key={msg.id} className={`flex flex-col ${mSelf ? 'items-end' : 'items-start'}`}>
+                    <div key={msg.id} className={`flex flex-col ${mSelf ? 'items-end' : 'items-start'} animate-[bubbleIn_.4s_ease-out]`}>
                       <div className={`flex items-end gap-2 ${mSelf ? 'flex-row-reverse' : ''}`}>
                         <div
                           className={`px-3.5 py-2 text-sm leading-relaxed backdrop-blur-xl whitespace-pre-wrap break-words transition ${
@@ -699,8 +699,9 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
         {!room?.messages?.length && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center text-white/40">
-              <div className="mb-3">
-                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <div className="relative w-fit mx-auto mb-3">
+                <span className="absolute inset-0 rounded-full bg-[#7C3AED]/30 blur-2xl animate-[heroGlow_3s_ease-in-out_infinite]" />
+                <svg className="relative w-12 h-12 animate-[floaty_4s_ease-in-out_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.85L3 20l1.3-3.6C3.44 14.97 3 13.55 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
@@ -741,7 +742,7 @@ export default function Chat({ roomId, displayName, onLeave, active, onNavigate,
                       <button
                         key={e}
                         onClick={() => pickEmoji(e)}
-                        className="text-lg leading-none p-1 rounded-lg hover:bg-white/10 transition flex items-center justify-center"
+                        className="text-lg leading-none p-1 rounded-lg hover:bg-white/10 hover:scale-125 active:scale-90 transition-all flex items-center justify-center"
                       >
                         {e}
                       </button>
