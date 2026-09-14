@@ -1,4 +1,4 @@
-# 💬 TempRoom- — Ephemeral Chat
+# 💬 Ephemeral Chat
 
 A beautiful, zero-persistence chat app. Send messages, images and files through **RAM-only rooms** that self-destruct the moment everyone leaves.
 
@@ -198,13 +198,20 @@ Passwords are **never** included in any snapshot or ack; `seatToken` is a one-pe
 ## 📁 Project Structure
 
 ```
-├── public/
+├── public/                     # robots.txt, .well-known/security.txt
 ├── server/                     # RAM-only relay (Express 5 + Socket.IO)
 │   ├── server.js               # HTTP + SPA fallback + Socket.IO wiring + sweeper
-│   ├── config/security.js      # Port, limits, room timings, rate limits
+│   ├── config/
+│   │   ├── csp.js              # Content-Security-Policy (header + build injection)
+│   │   └── security.js         # Port, limits, room timings, rate limits
 │   ├── rooms/roomManager.js    # In-memory room lifecycle + read receipts + leave alerts
 │   ├── sockets/roomSocket.js   # Socket.IO event handlers
-│   └── utils/                  # roomId, validation, cleanup helpers
+│   └── utils/
+│       ├── cleanup.js          # Interval sweeper helpers
+│       ├── httpRateLimit.js    # Per-IP HTTP throttling + connection cap
+│       ├── password.js         # Hash / verify (scrypt) — RAM only
+│       ├── roomId.js           # 6-character room-ID generator
+│       └── validation.js       # Input sanitization
 ├── src/
 │   ├── App.jsx                 # Stage machine: home → signup → app
 │   ├── main.jsx
@@ -216,16 +223,19 @@ Passwords are **never** included in any snapshot or ack; `seatToken` is a one-pe
 │   │   ├── Aurora.jsx          # Background aurora effect
 │   │   ├── Chat.jsx            # Chat thread, composer, emoji, files, leave alerts
 │   │   ├── DestroyConfirm.jsx
-│   │   ├── DotField.jsx / .css
+│   │   ├── DotField.jsx / .css  # Animated dot-field background
 │   │   ├── Lobby.jsx           # Create / join rooms
+│   │   ├── Reveal.jsx          # Scroll-reveal wrapper
 │   │   ├── Shell.jsx           # App shell + relay status pill
-│   │   └── SiteFooter.jsx      # Landing + sign-up footer
+│   │   ├── SiteFooter.jsx      # Landing + sign-up footer
+│   │   └── SpotlightCard.jsx   # Landing feature card
 │   ├── pages/
 │   │   ├── Home.jsx            # Landing page
 │   │   ├── Signup.jsx          # Guest account entry
 │   │   ├── Settings.jsx        # Profile, appearance, privacy, about
 │   │   └── Teams.jsx           # Room directory
 │   ├── hooks/
+│   │   ├── useReveal.js        # Reveal-on-scroll hook
 │   │   └── useUserName.js      # Live guest-name hook
 │   └── utils/
 │       ├── mask.js             # Room-ID masking helpers
