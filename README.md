@@ -41,6 +41,30 @@ Built with a **React 19 + Vite 8 + Tailwind CSS v4** client and a **Node.js + Ex
 
 ---
 
+## 📸 Screenshots
+
+### Desktop
+
+| Landing page | Guest sign-up |
+| --- | --- |
+| ![Home](screenshots/home.png) | ![Signup](screenshots/signup.png) |
+
+| Room lobby (create / join) | Live chat |
+| --- | --- |
+| ![Lobby](screenshots/lobby.png) | ![Chat](screenshots/chat.png) |
+
+| Teams (room directory) | Settings |
+| --- | --- |
+| ![Teams](screenshots/teams.png) | ![Settings](screenshots/settings.png) |
+
+### Mobile
+
+| Landing page | Live chat |
+| --- | --- |
+| ![Home mobile](screenshots/home-mobile.png) | ![Chat mobile](screenshots/chat-mobile.png) |
+
+---
+
 ## 🛠 Tech Stack
 
 | Layer | Choice |
@@ -199,6 +223,7 @@ Passwords are **never** included in any snapshot or ack; `seatToken` is a one-pe
 
 ```
 ├── public/                     # robots.txt, .well-known/security.txt
+├── screenshots/                # Page captures used in this README
 ├── server/                     # RAM-only relay (Express 5 + Socket.IO)
 │   ├── server.js               # HTTP + SPA fallback + Socket.IO wiring + sweeper
 │   ├── config/
