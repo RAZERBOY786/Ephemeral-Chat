@@ -15,6 +15,8 @@ const MAX_FILE_SIZE = 800 * 1024
 // locally (localStorage) are non-chat preferences and your display name.
 
 let rooms = {}
+/** roomId -> { name, seatToken } for seats this tab holds (seatToken is the
+ *  reconnect secret the relay issues on join/create and demands on rejoin). */
 let myNames = {}
 const listeners = new Set()
 /** roomId -> last message ts this tab has rendered as read. */
@@ -76,8 +78,8 @@ function ensureStoreSocket() {
 }
 
 async function rejoinAllRooms(entries) {
-  for (const [id, name] of entries) {
-    const res = await request('room:rejoin', { roomId: id, name })
+  for (const [id, seat] of entries) {
+    const res = await request('room:rejoin', { roomId: id, name: seat.name, seatToken: seat.seatToken })
     if (res.ok && res.room) rooms[id] = res.room
     else {
       delete rooms[id]
@@ -105,6 +107,11 @@ function copyRoom(r) {
     fileCount: r.fileCount || 0,
     typing: r.typing ? { ...r.typing } : {},
   }
+}
+
+/** Display name of the seat this tab holds in a room. */
+function myName(id) {
+  return myNames[id]?.name || ''
 }
 
 // ─── Guest account identity (local, non-chat) ────────────────────
@@ -169,7 +176,7 @@ export async function createRoom(password, creatorName) {
   const res = await request('room:create', { password, name: creatorName })
   if (!res.ok) return { ok: false, error: res.error }
   rooms[res.id] = res.room
-  myNames[res.id] = res.name
+  myNames[res.id] = { name: res.name, seatToken: res.seatToken }
   readTs[res.id] = res.room.messages.at(-1)?.ts || Date.now()
   recordActivity('room_created', `${res.name} created room ${res.id}`, res.id, { actor: res.name })
   return { ok: true, name: res.name, id: res.id }
@@ -180,19 +187,19 @@ export async function joinRoom(id, password, userName) {
   const res = await request('room:join', { roomId: id, password, name: userName })
   if (!res.ok) return { ok: false, error: res.error }
   rooms[res.id] = res.room
-  myNames[res.id] = res.name
+  myNames[res.id] = { name: res.name, seatToken: res.seatToken }
   readTs[res.id] = res.room.messages.at(-1)?.ts || Date.now()
   recordActivity('room_joined', `${res.name} joined room ${res.id}`, res.id, { actor: res.name })
   return { ok: true, name: res.name, roomId: res.id }
 }
 
 export async function leaveRoom(id, userName) {
-  await request('room:leave', { roomId: id, name: userName })
+  await request('room:leave', { roomId: id, name: userName || myName(id) })
   delete rooms[id]
   delete myNames[id]
   delete readTs[id]
   delete lastLeave[id]
-  recordActivity('room_left', `${userName} left room ${id}`, id, { actor: userName })
+  recordActivity('room_left', `${userName || myName(id)} left room ${id}`, id, { actor: userName || myName(id) })
 }
 
 export async function destroyRoom(id, actor = '') {
@@ -302,8 +309,8 @@ export function recordActivity(type, text, roomId, meta = {}) {
 // ─── Danger zone / backup ────────────────────────────────────────
 
 export async function clearRooms() {
-  for (const [id, name] of Object.entries(myNames)) {
-    await request('room:leave', { roomId: id, name })
+  for (const [id, seat] of Object.entries(myNames)) {
+    await request('room:leave', { roomId: id, name: seat.name })
   }
   rooms = {}
   myNames = {}

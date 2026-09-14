@@ -113,7 +113,10 @@ npm run dev           # → http://localhost:5173  (proxies /socket.io to :5000)
 | Variable | Default | Description |
 | --- | --- | --- |
 | `PORT` | `5000` | Port the relay (and built app) listens on. |
-| `ORIGIN` | `*` | Allowed browser origin for Socket.IO CORS. |
+| `ORIGIN` | *(none — same-origin only)* | Comma-separated allow-list of cross-origin browser hosts for CORS, e.g. `http://localhost:5173,https://app.example.com`. Leave empty when the relay also serves the built app. |
+| `CORS_ORIGINS` | *(none)* | Alias for `ORIGIN` (`ORIGIN` wins if both are set). |
+| `NODE_ENV` | `development` | Set to `production` so HSTS is advertised (deploy behind HTTPS). |
+| `TRUST_PROXY` | `false` | Set `true` only behind a reverse proxy so rate limits key on the real client IP. |
 | `STATIC_DIR` | `../dist` | Where the production build lives to be served. |
 | `VITE_SERVER_URL` | *(same origin)* | Client-side — point the app at a **remote relay**, e.g. `https://your-relay.example.com`. |
 
@@ -154,9 +157,9 @@ Create → joinable while members are online
 
 | Event | Payload | Ack |
 | --- | --- | --- |
-| `room:create` | `{ password, name }` | `{ ok, id, name, room }` |
-| `room:join` | `{ roomId, password, name }` | `{ ok, id, name, room }` |
-| `room:rejoin` | `{ roomId, name }` | `{ ok, id, room }` |
+| `room:create` | `{ password, name }` | `{ ok, id, name, seatToken, room }` |
+| `room:join` | `{ roomId, password, name }` | `{ ok, id, name, seatToken, room }` |
+| `room:rejoin` | `{ roomId, name, seatToken }` | `{ ok, id, room }` |
 | `room:leave` | `{ roomId, name }` | `{ ok, error }` |
 | `room:destroy` | `{ roomId, actor }` | `{ ok }` |
 | `message:send` | `{ roomId, text }` | `{ ok, id, room, error }` |
@@ -173,7 +176,7 @@ Create → joinable while members are online
 | --- | --- | --- |
 | `room:update` | `{ id, room, leave? }` | Full snapshot; `room: null` means the room was destroyed. `leave` = `{ name, reason, unread, at }`. |
 
-Passwords are **never** included in any snapshot or ack.
+Passwords are **never** included in any snapshot or ack; `seatToken` is a one-per-seat reconnect secret and never appears in room snapshots broadcast to other members.
 
 ---
 
@@ -182,10 +185,13 @@ Passwords are **never** included in any snapshot or ack.
 - **No database** — the relay keeps rooms in RAM; restarting the server wipes everything.
 - **Nothing stored** — no message, file or room is written to disk or `localStorage`.
 - **Hidden rooms** — no public room list; only the exact ID + password grants access.
-- **Password protected** — every room requires its password to join, and passwords never leave the server.
+- **Password protected + hashed** — every room requires its password to join. Passwords are salted and hashed with scrypt in RAM; plaintext never leaves the browser or the join ack, and a memory dump can't recover them.
+- **Authenticated reconnects** — a seat can only be reclaimed with the per-seat token the relay issued at join time (knowing a room ID + a display name is not enough).
+- **Authorized destruction** — only current members can destroy a room; a bare room ID can't kill someone else's session.
 - **Auto-destroy** — leaving last / pressing **Destroy** permanently erases the room (~30 s grace).
-- **Rate limited** — per-socket message throttling and join-attempt lockouts.
-- **Hardened build** — injected Content-Security-Policy, `noindex`/`nofollow`, no source maps.
+- **Rate limited** — per-socket message and room-creation throttling, join-attempt lockouts, per-IP HTTP throttling, and a hard per-IP connection cap.
+- **Hardened headers** — full Content-Security-Policy served as a header *and* injected at build time, `X-Frame-Options: DENY`, `nosniff`, strict `no-referrer`, Permissions-Policy lockdown, and (in production) HSTS.
+- **Hardened build** — injected Content-Security-Policy, `noindex`/`nofollow`, `robots.txt`, `.well-known/security.txt`, no source maps.
 
 ---
 

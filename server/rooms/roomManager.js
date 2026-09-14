@@ -1,5 +1,7 @@
+import { randomBytes } from 'node:crypto'
 import { CONFIG } from '../config/security.js'
 import { genRoomId } from '../utils/roomId.js'
+import { hashPassword, verifyPassword } from '../utils/password.js'
 import {
   sanitizeName,
   validationError,
@@ -18,6 +20,13 @@ function rand4() {
   return Math.random().toString(36).slice(2, 6)
 }
 
+// Per-seat secret handed to the member on join/create and needed again to
+// re-attach to the same seat after a disconnect (rejoins are authenticated,
+// not just name-based).
+function makeSeatToken() {
+  return randomBytes(16).toString('hex')
+}
+
 /**
  * In-memory room relay.
  *
@@ -34,6 +43,8 @@ export class RoomManager {
     this.removalTimers = new Map()
     /** @type {Map<string, {n:number, resetAt:number}>} */
     this.msgBuckets = new Map()
+    /** @type {Map<string, {n:number, resetAt:number}>} */
+    this.createBuckets = new Map()
     /** @type {Map<string, {fails:number, unlockAt:number}>} */
     this.joinGuards = new Map()
   }
@@ -68,6 +79,12 @@ export class RoomManager {
     if (typeof data.password !== 'string') return { ok: false, error: 'Room password must be at least 4 characters.' }
     if (data.password.length < limits.passwordMin) return { ok: false, error: 'Room password must be at least 4 characters.' }
     if (data.password.length > limits.passwordMax) return { ok: false, error: 'Room password is too long.' }
+    if (!this.consumeCreate(socketId)) {
+      return { ok: false, error: 'You have created too many rooms recently. Try again in a moment.' }
+    }
+    if (this.countRoomsFor(socketId) >= rateLimit.roomsPerSocket) {
+      return { ok: false, error: 'You are already in the maximum number of rooms.' }
+    }
 
     const name = sanitizeName(data.name) || `Guest-${1000 + Math.floor(Math.random() * 9000)}`
     let id = genRoomId()
@@ -75,10 +92,10 @@ export class RoomManager {
 
     const room = {
       id,
-      password: String(data.password),
+      passwordHash: hashPassword(String(data.password)),
       createdBy: name,
       createdAt: Date.now(),
-      members: [{ name, socketId, online: true, readTs: Date.now() }],
+      members: [{ name, socketId, online: true, readTs: Date.now(), seatToken: makeSeatToken() }],
       messages: [
         { id: `sys-${Date.now()}-${rand4()}`, text: `${name} created the room`, type: 'system', time: stamp(), ts: Date.now() },
       ],
@@ -87,7 +104,7 @@ export class RoomManager {
       typing: {},
     }
     this.rooms.set(id, room)
-    return { ok: true, id, name, room: this.snapshot(room) }
+    return { ok: true, id, name, seatToken: room.members[0].seatToken, room: this.snapshot(room) }
   }
 
   joinRoom(socketId, data = {}) {
@@ -107,9 +124,12 @@ export class RoomManager {
       this.recordJoinFail(socketId)
       return { ok: false, error: 'Room not found. Check the ID and try again.' }
     }
-    if (room.password !== String(data.password)) {
+    if (!verifyPassword(String(data.password), room.passwordHash)) {
       this.recordJoinFail(socketId)
       return { ok: false, error: 'Incorrect password.' }
+    }
+    if (this.countRoomsFor(socketId) >= rateLimit.roomsPerSocket) {
+      return { ok: false, error: 'You are already in the maximum number of rooms.' }
     }
 
     this.joinGuards.delete(socketId)
@@ -125,17 +145,20 @@ export class RoomManager {
     })
     this.capHistory(room)
 
-    return { ok: true, id, name: member.name, room: this.snapshot(room) }
+    return { ok: true, id, name: member.name, seatToken: member.seatToken, room: this.snapshot(room) }
   }
 
   rejoinRoom(socketId, data = {}) {
     const roomId = String(data.roomId || '').toUpperCase()
     const name = sanitizeName(data.name)
+    const seatToken = String(data.seatToken || '')
     const room = this.rooms.get(roomId)
-    if (!room || !name) return { ok: false }
+    if (!room || !name || !seatToken) return { ok: false }
 
-    const member = room.members.find((m) => m.name === name)
-    if (!member) return { ok: false }
+    const member = room.members.find((m) => m.name === name && !m.online)
+    // A seat can only be reclaimed with the secret token issued when it was
+    // taken — knowing the room ID + a display name is not enough.
+    if (!member || member.seatToken !== seatToken) return { ok: false }
 
     this.cancelRemoval(room.id, member.name)
     member.socketId = socketId
@@ -173,7 +196,9 @@ export class RoomManager {
   destroyRoom(socketId, data = {}) {
     const roomId = String(data.roomId || '').toUpperCase()
     const room = this.rooms.get(roomId)
-    if (!room) return { ok: false, error: 'Room not found.' }
+    // Only current members may destroy a room — a room ID alone (6 chars,
+    // shared freely) must never be enough to kill someone else's session.
+    if (!room || !this.isMember(room, socketId)) return { ok: false, error: 'Room not found.' }
 
     this.rooms.delete(roomId)
     for (const m of room.members) this.cancelRemoval(room.id, m.name)
@@ -336,7 +361,7 @@ export class RoomManager {
       this.cancelRemoval(room.id, oldestOffline.name)
       this.removeMember(room, oldestOffline, true, 'evicted')
     }
-    member = { name: finalName, socketId, online: true, readTs: room.messages.at(-1)?.ts || Date.now() }
+    member = { name: finalName, socketId, online: true, readTs: room.messages.at(-1)?.ts || Date.now(), seatToken: makeSeatToken() }
     room.members.push(member)
     return member
   }
@@ -436,6 +461,29 @@ export class RoomManager {
       g.unlockAt = Date.now() + rateLimit.joinLockMs
     }
     this.joinGuards.set(socketId, g)
+  }
+
+  consumeCreate(socketId) {
+    const now = Date.now()
+    const b = this.createBuckets.get(socketId)
+    if (!b || now >= b.resetAt) {
+      this.createBuckets.set(socketId, { n: 1, resetAt: now + rateLimit.createWindowMs })
+      return true
+    }
+    if (b.n < rateLimit.createMax) {
+      b.n += 1
+      return true
+    }
+    return false
+  }
+
+  /** Distinct rooms this socket currently holds a seat in. */
+  countRoomsFor(socketId) {
+    let n = 0
+    for (const room of this.rooms.values()) {
+      if (room.members.some((m) => m.socketId === socketId)) n += 1
+    }
+    return n
   }
 
   consumeMessage(socketId) {

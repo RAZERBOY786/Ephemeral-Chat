@@ -1,0 +1,7 @@
+# Security contact for Ephemeral Chat.
+# Please share vulnerabilities privately before disclosing them publicly and
+# include clear steps to reproduce.
+
+Contact: mailto:security@example.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
